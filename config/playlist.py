@@ -10,3 +10,4 @@ def spotify_playlists():
 def personal_playlists():
     playlists = {'drive_hood':'spotify:playlist:1uM1laLmdeCMRQoYC1gybB'}
     return playlists
+

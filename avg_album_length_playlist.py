@@ -2,18 +2,36 @@ import csv
 from urllib import response
 import boto3
 from datetime import datetime
+from io import StringIO
 
 from config.playlist import spotify_playlists
 from tools.playlists import get_track_info
-from tools.helpers import Helper
+from tools.helpers import Helper,SpotipyHelper
 from  config.playlist import spotify_playlists
+import pandas as pd
 
 
 helper = Helper()
 spotipy_object = helper.authorize_and_create_client()
 s3_resource = helper.create_aws_resource()
-# s3_clients = s3_resource.meta.client
+s3_clients = s3_resource.meta.client
 # bucket = helper.create_bucket('naki-',s3_clients)
+
+def create_recommended_playlist():
+    spotify_helper = SpotipyHelper()
+    helper = Helper()
+    spotify_client = helper.authorize_and_create_client()
+
+
+    tracks = spotify_helper.track_to_viz(spotify_client)
+    recommended_tracks = spotify_helper.recommended_tracks(spotify_client,tracks)
+    recommended_track_names = spotify_helper.recommended_tracks_name(recommended_tracks)
+
+    playlist = spotify_helper.create_playlist(spotify_client)
+    recommended_uris = spotify_helper.get_tracks_uris(spotify_client,recommended_track_names)
+    response = spotify_helper.populate_tracks_in_playlist(spotify_client,playlist['id'],recommended_uris)
+
+   
 
 
 
@@ -95,17 +113,16 @@ def gather_data(playlist):
                 final_data_dictionary['Artist'].append(album_data['artists'][0]['name']) 
                 final_data_dictionary['Songs Number'].append(counter)                        
 
-        
-  
-
     date = datetime.now()
     filename = f'{date.year}/{date.month}/{date.day}/{playlist}.csv'
-    response = s3_resource.Object('spotify-analysis-data-nakisa', filename).upload_file(f'/tmp/{playlist}.csv')
-    return response
+    s3_resource.Object('spotify-analysis-data-nakisa', filename).upload_file(f'/tmp/{playlist}.csv')
+    
 
-def lambda_handler(event, context):
-    gather_data()
+def read_data(key,filename,bucket):
+    s3_clients.download_file(Bucket=bucket, Key=f'{key}/{filename}', 
+                            Filename="data/downloaded_from_s3.csv")
 
+   
     
 
 

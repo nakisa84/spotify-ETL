@@ -3,27 +3,14 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import boto3
 import uuid
-
-class Track:
-    def __init__(self,track_name,artist_name,track_id):
-        self.name = track_name
-        self.artist_name = artist_name
-        self.track_id = track_id
-
-        
-
-AUTH_URL = 'https://accounts.spotify.com/api/token'
-SCOPE = 'playlist-modify-public user-read-recently-played'
-USERNAME = os.getenv('SPOTIFY_USER_NAME')
-CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID')
-CLIENT_SECRET = os.getenv('SPTOFY_CLIENT_SECRET')
-REDIRECT_URL = 'http://localhost:9000'
+from objects.Track import Track
+from config import variables
 
 
 
 class Helper:
     def authorize_and_create_client(self):
-        token = SpotifyOAuth(scope=SCOPE,username=USERNAME,client_id=CLIENT_ID,client_secret=CLIENT_SECRET,redirect_uri=REDIRECT_URL)
+        token = SpotifyOAuth(scope=variables.SCOPE,username=variables.USERNAME,client_id=variables.CLIENT_ID,client_secret=variables.CLIENT_SECRET,redirect_uri=variables.REDIRECT_URL)
         spotify_client = spotipy.Spotify(auth_manager=token)
         return spotify_client 
 
@@ -56,14 +43,14 @@ class SpotipyHelper:
 
         print(f"\nHere are the last {num_tracks_to_visualise} tracks you listened to on Spotify:")
         for index, track in enumerate(tracks):
-            print(f"{index+1}- {track}")
+            print(f"{index+1}- {track.name}")
         return tracks
 
 
     def recommended_tracks(self,spotify_client,tracks):
         indexes = input("\nEnter a list of up to 5 tracks you'd like to use as seeds. Use indexes separated by a space: ")
         indexes = indexes.split()
-        seed_tracks = [tracks[int(index)-1].id for index in indexes]  
+        seed_tracks = [tracks[int(index)-1].track_id for index in indexes]  
         #track_features = spotify_client.audio_features(seed_tracks)
         recommended_tracks = spotify_client.recommendations(seed_tracks=seed_tracks)
         return recommended_tracks  
@@ -88,12 +75,19 @@ class SpotipyHelper:
 
     def create_playlist(self,spotify_client):
         playlist_name = input("\nWhat's the playlist name? ")
-        playlist = spotify_client.user_playlist_create(USERNAME,playlist_name)
+        playlist = spotify_client.user_playlist_create(variables.USERNAME,playlist_name)
         print(f"\nPlaylist '{playlist['name']}' was created successfully.") 
         return playlist
 
 
 
     def populate_tracks_in_playlist(self,spotify_client,playlistid,recommended_uris):
-        response = spotify_client.user_playlist_add_tracks(USERNAME,playlist_id=playlistid,tracks=recommended_uris)
+        response = spotify_client.user_playlist_add_tracks(variables.USERNAME,playlist_id=playlistid,tracks=recommended_uris)
+        if response['snapshot_id']:
+            print(f"\nTracks populated successfully.") 
         return response
+
+    # def browes_by_category():
+          
+
+    
