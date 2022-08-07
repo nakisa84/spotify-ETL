@@ -1,6 +1,7 @@
 import os
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
+import boto3
 
 class Track:
     def __init__(self,track_name,artist_name,track_id):
@@ -18,12 +19,26 @@ CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID')
 CLIENT_SECRET = os.getenv('SPTOFY_CLIENT_SECRET')
 REDIRECT_URL = 'http://localhost:9000'
 
+ACCESS_KEY_ID=os.getenv('ACCESS_KEY_ID')
+SECRET_ACCESS_KEY=os.getenv('SECRET_ACCESS_KEY')
+
 
 class Helper:
     def authorize_and_create_client(self):
         token = SpotifyOAuth(scope=SCOPE,username=USERNAME,client_id=CLIENT_ID,client_secret=CLIENT_SECRET,redirect_uri=REDIRECT_URL)
         spotify_client = spotipy.Spotify(auth_manager=token)
         return spotify_client
+
+
+    def create_aws_boto3_client(self):
+        # s3 = boto3.client('s3',ACCESS_KEY_ID,SECRET_ACCESS_KEY)
+
+
+        s3 = boto3.resource(
+        service_name='s3',
+        aws_access_key_id=ACCESS_KEY_ID,
+        aws_secret_access_key=SECRET_ACCESS_KEY)
+        return s3   
 
 class SpotipyHelper:
     def track_to_viz(self,spotify_client):
