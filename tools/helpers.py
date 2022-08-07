@@ -2,6 +2,7 @@ import os
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 import boto3
+import uuid
 
 class Track:
     def __init__(self,track_name,artist_name,track_id):
@@ -11,7 +12,6 @@ class Track:
 
         
 
-global AUTH_URL,SCOPE,USERNAME,CLIENT_ID,CLIENT_SECRET,REDIRECT_URL
 AUTH_URL = 'https://accounts.spotify.com/api/token'
 SCOPE = 'playlist-modify-public user-read-recently-played'
 USERNAME = os.getenv('SPOTIFY_USER_NAME')
@@ -19,26 +19,32 @@ CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID')
 CLIENT_SECRET = os.getenv('SPTOFY_CLIENT_SECRET')
 REDIRECT_URL = 'http://localhost:9000'
 
-ACCESS_KEY_ID=os.getenv('ACCESS_KEY_ID')
-SECRET_ACCESS_KEY=os.getenv('SECRET_ACCESS_KEY')
 
 
 class Helper:
     def authorize_and_create_client(self):
         token = SpotifyOAuth(scope=SCOPE,username=USERNAME,client_id=CLIENT_ID,client_secret=CLIENT_SECRET,redirect_uri=REDIRECT_URL)
         spotify_client = spotipy.Spotify(auth_manager=token)
-        return spotify_client
+        return spotify_client 
+
+   
+    def create_bucket_name(self,bucket_prefix):
+    # The generated bucket name must be between 3 and 63 chars long
+        return ''.join([bucket_prefix, str(uuid.uuid4())]) 
 
 
-    def create_aws_boto3_client(self):
-        # s3 = boto3.client('s3',ACCESS_KEY_ID,SECRET_ACCESS_KEY)
+    def create_aws_resource(self):
+        s3_resource = boto3.resource('s3')
+        return s3_resource      
 
-
-        s3 = boto3.resource(
-        service_name='s3',
-        aws_access_key_id=ACCESS_KEY_ID,
-        aws_secret_access_key=SECRET_ACCESS_KEY)
-        return s3   
+    def create_bucket(self,bucket_prefix, s3_connection):
+        session = boto3.session.Session()
+        current_region = session.region_name
+        bucket_name = self.create_bucket_name(bucket_prefix)
+        bucket_response = s3_connection.create_bucket(
+            Bucket=bucket_name)
+        print(bucket_name, current_region)
+        return bucket_name, bucket_response    
 
 class SpotipyHelper:
     def track_to_viz(self,spotify_client):

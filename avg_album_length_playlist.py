@@ -1,4 +1,5 @@
 import csv
+from urllib import response
 import boto3
 from datetime import datetime
 
@@ -10,7 +11,9 @@ from  config.playlist import spotify_playlists
 
 helper = Helper()
 spotipy_object = helper.authorize_and_create_client()
-s3 = helper.create_aws_boto3_client()
+s3_resource = helper.create_aws_resource()
+# s3_clients = s3_resource.meta.client
+# bucket = helper.create_bucket('naki-',s3_clients)
 
 
 
@@ -64,7 +67,7 @@ def gather_data(playlist):
         'Artist':[],
         'Songs Number':[]
     }
-    with open('/tmp/rapcaviar_album.csv','w') as file:
+    with open(f'/tmp/{playlist}.csv','w') as file:
         header = list(final_data_dictionary.keys())
         writer = csv.DictWriter(file,fieldnames=header)
         writer.writeheader()
@@ -93,29 +96,16 @@ def gather_data(playlist):
                 final_data_dictionary['Songs Number'].append(counter)                        
 
         
-        s3 = boto3.resource('s3')
-        date = datetime.now()
-        filename = f'{date.year}/{date.month}/{date.day}/rapcaviar_albums.csv'
-        object = s3.Object('spotify-analysis-data-nakisa', filename)
-        object.put(Body=file)
+  
 
-
-# def test():
-#     some_binary_data = b'Here we have some data'
-#     more_binary_data = b'Here we have some more data'
-
-#     # Method 1: Object.put()
-#     s3 = boto3.resource('s3')
-#     object = s3.Object('spotify-analysis-data-nakisa', 'my/key/including/filename.txt')
-#     object.put(Body=some_binary_data)
-
-#     # # Method 2: Client.put_object()
-#     # client = boto3.client('s3')
-#     # client.put_object(Body=more_binary_data, Bucket='spotify-analysis-data-nakisa', Key='my/key/including/anotherfilename.txt')
-
-
+    date = datetime.now()
+    filename = f'{date.year}/{date.month}/{date.day}/{playlist}.csv'
+    response = s3_resource.Object('spotify-analysis-data-nakisa', filename).upload_file(f'/tmp/{playlist}.csv')
+    return response
 
 def lambda_handler(event, context):
     gather_data()
+
+    
 
 
