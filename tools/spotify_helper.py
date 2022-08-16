@@ -3,22 +3,16 @@ from spotipy.oauth2 import SpotifyOAuth
 from objects.Track import Track
 from config import variables
 
-
-
-
-
-class SpotipyHelper():
-
+class Helper():
     def __init__(self):
-        self.client = self.authorize_and_create_client()
-
-    def authorize_and_create_client(self):
-        token = SpotifyOAuth(scope=variables.SCOPE,username=variables.USERNAME,client_id=variables.CLIENT_ID,client_secret=variables.CLIENT_SECRET,redirect_uri=variables.REDIRECT_URL)
-        spotify_client = spotipy.Spotify(auth_manager=token)
-        return spotify_client 
+        self.token = SpotifyOAuth(scope=variables.SCOPE,username=variables.USERNAME,client_id=variables.CLIENT_ID,client_secret=variables.CLIENT_SECRET,redirect_uri=variables.REDIRECT_URL)
+        self.client = spotipy.Spotify(auth_manager=self.token)
 
 
-
+class SpotipyHelper(Helper):
+    def __init__(self):
+        super().__init__()
+   
     def track_to_viz(self):
         num_tracks_to_visualise = int(input("How many tracks would you like to visualise? "))
         last_played_tracks = self.client.current_user_recently_played(num_tracks_to_visualise)

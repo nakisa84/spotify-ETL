@@ -1,15 +1,29 @@
 import csv
 from config.playlist import spotify_playlists
-from utils.playlists import get_track_info
 from tools.spotify_helper import SpotipyHelper
 from  config.playlist import spotify_playlists
 from tools.s3_helper import s3
 
 
 spotify_object = SpotipyHelper()
-spotipy_object = spotify_object.authorize_and_create_client()
 s3_ = s3()
 
+def get_track_info(spotipy_object,uris):
+    tracks = {}
+    playlist_tracks = spotipy_object.playlist_tracks(playlist_id=uris)
+
+    counter = 0
+    for song in playlist_tracks['items']:
+        if song['track']:
+            if song['track']['album'] and song['track']['album']['name']:
+                counter +=1
+                tracks[f'track-{counter}']               = {}
+                tracks[f'track-{counter}']['name']       = song['track']['name']
+                tracks[f'track-{counter}']['uri']        = song['track']['artists'][0]['uri']
+                tracks[f'track-{counter}']['artist']     = song['track']['artists'][0]['name']
+                tracks[f'track-{counter}']['album_name'] = song['track']['album']['name']
+                tracks[f'track-{counter}']['album_uri']  = song['track']['album']['uri']
+    return tracks
 
 
 def gather_data_local(playlist):
@@ -26,13 +40,13 @@ def gather_data_local(playlist):
         writer = csv.DictWriter(file,fieldnames=header)
         writer.writeheader()
         albums_obtained = []
-        tracks_info = get_track_info(spotipy_object,spotify_playlists()[playlist])
+        tracks_info = get_track_info(spotify_object.client,spotify_playlists()[playlist])
         for track in tracks_info:
             key = tracks_info[track]['album_name']+"-"+tracks_info[track]['artist']
             print(key)
             if key not in albums_obtained:
                 albums_obtained.append(key)
-                album_data = spotipy_object.album(tracks_info[track]['album_uri'])
+                album_data = spotify_object.client.album(tracks_info[track]['album_uri'])
                 album_length_ms = 0
                 counter = 0
                 for song in album_data['tracks']['items']:
@@ -65,13 +79,13 @@ def gather_data(playlist,bucket):
         writer = csv.DictWriter(file,fieldnames=header)
         writer.writeheader()
         albums_obtained = []
-        tracks_info = get_track_info(spotipy_object,spotify_playlists()[playlist])
+        tracks_info = get_track_info(spotify_object.client,spotify_playlists()[playlist])
         for track in tracks_info:
             key = tracks_info[track]['album_name']+"-"+tracks_info[track]['artist']
             print(key)
             if key not in albums_obtained:
                 albums_obtained.append(key)
-                album_data = spotipy_object.album(tracks_info[track]['album_uri'])
+                album_data = spotify_object.client.album(tracks_info[track]['album_uri'])
                 album_length_ms = 0
                 counter = 0
                 for song in album_data['tracks']['items']:
