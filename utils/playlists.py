@@ -1,6 +1,4 @@
 
-from sympy import limit
-
 
 def get_track_info(spotipy_object,uris):
     tracks = {}
