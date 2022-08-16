@@ -24,12 +24,12 @@ class Helper:
         s3_resource = boto3.resource('s3')
         return s3_resource      
 
-    def create_bucket(self,bucket_prefix, s3_connection):
+    def create_bucket(self,bucket_prefix, s3_connection,bucket_name = None):
         session = boto3.session.Session()
         current_region = session.region_name
-        bucket_name = self.create_bucket_name(bucket_prefix)
-        bucket_response = s3_connection.create_bucket(
-            Bucket=bucket_name)
+        if bucket_name is None:
+            bucket_name = self.create_bucket_name(bucket_prefix)
+        bucket_response = s3_connection.create_bucket(Bucket=bucket_name)
         print(bucket_name, current_region)
         return bucket_name, bucket_response    
 
