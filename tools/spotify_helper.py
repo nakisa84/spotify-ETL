@@ -47,7 +47,7 @@ class SpotipyHelper(Helper):
 
         return  rec_track_names
 
-    def recommended_tracks_info(self,rec_tracks):
+    def rec_tracks_info(self,rec_tracks):
         print("\nHere are the recommended tracks which will be included in your new playlist:")
         rec_tracks_info= []
 
@@ -119,7 +119,7 @@ class SpotipyHelper(Helper):
         seed_tracks = [tracks[i].track_id for i in range(3)]  
         #track_features = spotify_client.audio_features(seed_tracks)
         rec_track = self.client.recommendations(seed_tracks=seed_tracks)
-        rec_tracks_info = self.recommended_tracks_info(rec_track)
+        rec_tracks_info = self.rec_tracks_info(rec_track)
         rec_track_full = self.get_tracks_uris_full(rec_tracks_info)
         return rec_track_full
         
