@@ -1,7 +1,7 @@
 import csv
 from config.playlist import spotify_playlists
 from tools.spotify_helper import SpotipyHelper
-from  config.playlist import spotify_playlists
+from config.playlist import spotify_playlists
 from tools.s3_helper import s3
 
 
@@ -103,6 +103,44 @@ def gather_data(playlist,bucket):
                 final_data_dictionary['Songs Number'].append(counter)                        
     
     s3_.save_data_s3(playlist,bucket)
+
+
+
+
+def rec_data(playlist,aws = False,bucket = None):
+    rec_track_full = spotify_object.create_rec_playlist()
+    trach_counter = 0
+    rec_dic = {
+            'Track Number':[],
+            'Track':[],
+            'Artist':[],
+            'URI':[]
+            }
+ 
+    if aws:
+        path = '/tmp/'  
+    else:
+        path = 'data/'       
+    with open(f"{path}{playlist}.csv",'w') as file:
+        header = list(rec_dic.keys())
+        writer = csv.DictWriter(file,fieldnames=header)
+        writer.writeheader()
+        for track in rec_track_full:
+            trach_counter += 1
+            writer.writerow({
+                            'Track Number': trach_counter,
+                            'Track' : track[0],
+                            'Artist': track[1],
+                            'URI': track[2]
+                            })
+    if aws == True:
+        s3_.save_data_s3(playlist,bucket) 
+
+                       
+
+
+
+
   
     
                              

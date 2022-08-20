@@ -24,18 +24,18 @@ class s3:
 
 
     def create_bucket(self,bucket_prefix = None,bucket_name = None):
-    
         if bucket_name is None:
             bucket_name = self.create_bucket_name(bucket_prefix)
-        # try:    
+        # try:   
+        if self.is_bucket_exists(bucket_name):
+             print(f"{bucket_name}-already exists.") 
+             return
         bucket_response = self.client.create_bucket(Bucket=bucket_name)
         print(f"{bucket_response['Location']} has been created.")
         return bucket_name, bucket_response 
         # except:
         #     print("An exception occurred")
         
-           
-
 
     def save_data_s3(self,playlist,bucket):
         date = datetime.now()
@@ -59,6 +59,7 @@ class s3:
         for bucket in response['Buckets']:
             print(f"-- {bucket['Name']}")
         return response['Buckets'] 
+     
 
 
     def delete_buckets_s3(self):
