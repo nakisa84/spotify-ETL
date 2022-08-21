@@ -1,6 +1,7 @@
 
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
+from objects.Artist import Artist
 from objects.Track import Track
 from config import variables
 
@@ -57,9 +58,9 @@ class SpotipyHelper(Helper):
 
         return  rec_tracks_info        
 
-    def get_tracks_uris(self,recommended_track_names):
+    def get_tracks_uris(self,track_names):
         rec_uris = []
-        for track in recommended_track_names:
+        for track in track_names:
             query = track
             uri = self.client.search(limit=1,q=query)['tracks']['items'][0]['id']
             rec_uris.append(uri)
@@ -80,29 +81,20 @@ class SpotipyHelper(Helper):
             print(f"\nTracks populated successfully.") 
         return response
 
-    def create_rec_playlist_spo(self):
-        
+    def create_rec_playlist(self):
         tracks = self.track_to_viz()
         rec_tracks = self.recommended_tracks(tracks)
         rec_track_names = self.recommended_tracks_name(rec_tracks)
-
-        playlist = self.create_playlist()
-        rec_uris = self.get_tracks_uris(rec_track_names)
-        try:
-            response = self.populate_tracks_in_playlist(playlist['id'],rec_uris)
-            if response['snapshot_id']:
-                print("Tracks have been populated successfully!")
-        except: 
-                print("There was an error!")
-        return response
+        respond = self.create_playlist_with_track_names(rec_track_names)
+        return respond
 
     def get_tracks_uris_full(self,rec_tracks_info):
-        rec_uris = []
+        track_info = []
         for track in rec_tracks_info:
             query = track[0]
             uri = self.client.search(limit=1,q=query)['tracks']['items'][0]['id']
-            rec_uris.append((track[0],track[1],uri))
-        return rec_uris
+            track_info.append((track[0],track[1],uri))
+        return track_info
 
     def create_rec_playlist(self,numbers = 10):
         if not numbers:
@@ -117,11 +109,69 @@ class SpotipyHelper(Helper):
             print(f"{index+1}- {track.name}")
 
         seed_tracks = [tracks[i].track_id for i in range(3)]  
-        #track_features = spotify_client.audio_features(seed_tracks)
         rec_track = self.client.recommendations(seed_tracks=seed_tracks)
         rec_tracks_info = self.rec_tracks_info(rec_track)
         rec_track_full = self.get_tracks_uris_full(rec_tracks_info)
         return rec_track_full
+
+
+    def get_rec_genre(self):
+        counter = 0
+        genres = self.client.recommendation_genre_seeds() 
+        for item in genres['genres']:
+            counter += 1
+            print(f'{counter}-{item}')
+        return genres['genres'] 
+
+    def get_top_song_by_artist(self,id):
+        tracks = self.client.artist_top_tracks(id)
+        return tracks
+
+    def get_categories(self):
+        cat = self.client.categories(limit=50) 
+        return cat
+
+    def get_category_playlists(self,category_id):
+        playlist = self.client.category_playlists(category_id = category_id,limit=50) 
+        return playlist    
+    
+    def search_by_genre(self,genre,type,limit):
+        query = f'genre:{genre}' 
+        artists = self.client.search(q=query,type=type,limit=limit)
+        return artists
+
+    def create_playlist_with_track_names(self,track_names):
+        playlist = self.create_playlist()
+        rec_uris = self.get_tracks_uris(track_names)
+        try:
+            response = self.populate_tracks_in_playlist(playlist['id'],rec_uris)
+            if response['snapshot_id']:
+                print("Tracks have been populated successfully!")
+                return response 
+        except: 
+                print("There was an error!")
+
+    def get_tracks_by_genre(self,genre):
+        artists = self.search_by_genre(genre,type = 'artist',limit = 50)
+        artists = [Artist(artist['id'],artist['genres'],artist['uri'],artist['name'],artist['popularity'])  for artist in artists['artists']['items']]
+        for artist in artists:
+            print(artist.name)
+
+        atrists_track = []
+        for artist in artists:
+            tracks = self.get_top_song_by_artist(artist.id)['tracks']
+            for track in tracks:
+                track = Track(track['name'],artist.name,track['id'],track['uri'])
+                print(track.__str__())
+                atrists_track.append(track)
+        return atrists_track
+       
+           
+
+
+
+
+
         
           
         

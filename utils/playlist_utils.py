@@ -107,7 +107,7 @@ def gather_data(playlist,bucket):
 
 
 
-def rec_data(playlist,aws = False,bucket = None):
+def save_rec_tracks_data(playlist,aws = False,bucket = None):
     rec_track_full = spotify_object.create_rec_playlist()
     trach_counter = 0
     rec_dic = {
@@ -135,6 +135,35 @@ def rec_data(playlist,aws = False,bucket = None):
                             })
     if aws == True:
         s3_.save_data_s3(playlist,bucket) 
+
+
+def save_tracks_data(tracks,playlist,aws = False,bucket = None):
+        trach_counter = 0
+        rec_dic = {
+                'Track Number':[],
+                'Track':[],
+                'Artist':[],
+                'URI':[]
+                }
+    
+        if aws:
+            path = '/tmp/'  
+        else:
+            path = 'data/'       
+        with open(f"{path}{playlist}.csv",'w') as file:
+            header = list(rec_dic.keys())
+            writer = csv.DictWriter(file,fieldnames=header)
+            writer.writeheader()
+            for track in tracks:
+                trach_counter += 1
+                writer.writerow({
+                                'Track Number': trach_counter,
+                                'Track' : track.name,
+                                'Artist': track.artist,
+                                'URI': track.uri
+                                })
+        if aws == True:
+            s3_.save_data_s3(playlist,bucket)     
 
                        
 

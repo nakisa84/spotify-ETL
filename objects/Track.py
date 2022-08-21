@@ -1,8 +1,9 @@
 class Track:
-    def __init__(self,track_name,artist_name,track_id):
-        self.name = track_name
-        self.artist_name = artist_name
-        self.track_id = track_id
+    def __init__(self,name,artist,id,uri = None):
+        self.name = name
+        self.artist = artist
+        self.id = id
+        self.uri = uri
     def create_spotify_uri(self):
         return  f"spotify:track:{self.id}"
 
