@@ -28,15 +28,14 @@ if __name__ == '__main__' :
     # print(playlist)
     bucket_name = 'spotify-genre-data'
     s3_.create_bucket(bucket_name=bucket_name)
-    
+
     geras = spotipy_.get_rec_genre()
-    genre = ''
+    genre = input('\nWhat genra:')
     while genre != 'done':
-          genre = input('What genra:')
-          atrists_track = spotipy_.get_tracks_by_genre(genre)
-          
+          atrists_track = spotipy_.get_tracks_by_genre(genre) 
           playlist = f'{genre}-genre'
           save_tracks_data(atrists_track,playlist,aws = True,bucket = bucket_name)
+          genre = input('\nWhat genra:')
 
                            
 

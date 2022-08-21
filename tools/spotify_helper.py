@@ -85,7 +85,7 @@ class SpotipyHelper(Helper):
         tracks = self.track_to_viz()
         rec_tracks = self.recommended_tracks(tracks)
         rec_track_names = self.recommended_tracks_name(rec_tracks)
-        respond = self.create_playlist_with_track_names(rec_track_names)
+        respond = self.create_playlist_with_track(track_names=rec_track_names)
         return respond
 
     def get_tracks_uris_full(self,rec_tracks_info):
@@ -140,11 +140,12 @@ class SpotipyHelper(Helper):
         artists = self.client.search(q=query,type=type,limit=limit)
         return artists
 
-    def create_playlist_with_track_names(self,track_names):
+    def create_playlist_with_track(self,track_names = None,uris = None):
         playlist = self.create_playlist()
-        rec_uris = self.get_tracks_uris(track_names)
+        if not uris:
+            uris = self.get_tracks_uris(track_names)
         try:
-            response = self.populate_tracks_in_playlist(playlist['id'],rec_uris)
+            response = self.populate_tracks_in_playlist(playlist['id'],uris)
             if response['snapshot_id']:
                 print("Tracks have been populated successfully!")
                 return response 
