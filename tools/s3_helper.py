@@ -1,8 +1,5 @@
 from datetime import datetime
-from operator import imod
-
 import uuid
-from warnings import catch_warnings
 import boto3
 
 
@@ -37,18 +34,35 @@ class s3:
         #     print("An exception occurred")
         
 
-    def save_data_s3(self,playlist,bucket):
+    def save_data_s3_date_folder(self,playlist,bucket):
         date = datetime.now()
         filename = f'{date.year}/{date.month}/{date.day}/{playlist}.csv'
         self.client.upload_file(Filename = f'/tmp/{playlist}.csv',
-                            Bucket = bucket,
-                            Key = filename)
+                                Bucket = bucket,
+                                Key = filename)
 
-    def read_data_s3(self,bucket,key,filename):
+    def save_data_s3(self,playlist,bucket,filename = None):
+        if not filename:
+            filename = f'{playlist}.csv'
+        self.client.upload_file(Filename = f'/tmp/{playlist}.csv',
+                                Bucket = bucket,
+                                Key = filename)   
+
+    def download_data_s3_file(self,bucket,filename):
+        self.client.download_file(Bucket = bucket,
+                                  Key = filename, 
+                                  Filename = f"data/{filename}")
+    
+    def read_bucket_file_names(self,bucket):
+        my_bucket = self.resource.Bucket(bucket)
+        return [my_bucket_object.key.split('.')[0] for my_bucket_object in my_bucket.objects.all()]
+                     
+
+    def download_data_s3_from_folder(self,bucket,key,filename):
         keys = key.split('/')
         self.client.download_file(Bucket = bucket,
-                                Key = f'{key}/{filename}', 
-                                Filename = f"data/{keys[0]}_{keys[1]}_{keys[2]}_{filename}")
+                                  Key = f'{key}/{filename}', 
+                                  Filename = f"data/{keys[0]}_{keys[1]}_{keys[2]}_{filename}")
 
     def get_buckets_s3(self):
         response = self.client.list_buckets()

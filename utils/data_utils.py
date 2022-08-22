@@ -102,7 +102,7 @@ def gather_data(playlist,bucket):
                 final_data_dictionary['Artist'].append(album_data['artists'][0]['name']) 
                 final_data_dictionary['Songs Number'].append(counter)                        
     
-    s3_.save_data_s3(playlist,bucket)
+    s3_.save_data_s3_date_folder(playlist,bucket)
 
 
 
@@ -110,12 +110,10 @@ def gather_data(playlist,bucket):
 def save_rec_tracks_data(playlist,aws = False,bucket = None):
     rec_track_full = spotify_object.create_rec_playlist()
     trach_counter = 0
-    rec_dic = {
-            'Track Number':[],
-            'Track':[],
-            'Artist':[],
-            'URI':[]
-            }
+    rec_dic = {'Track Number':[],
+               'Track':[],
+               'Artist':[],
+               'URI':[]}
  
     if aws:
         path = '/tmp/'  
@@ -127,43 +125,39 @@ def save_rec_tracks_data(playlist,aws = False,bucket = None):
         writer.writeheader()
         for track in rec_track_full:
             trach_counter += 1
-            writer.writerow({
-                            'Track Number': trach_counter,
-                            'Track' : track[0],
-                            'Artist': track[1],
-                            'URI': track[2]
-                            })
+            writer.writerow({'Track Number': trach_counter,
+                             'Track' : track[0],
+                             'Artist': track[1],
+                             'URI': track[2]})
     if aws == True:
-        s3_.save_data_s3(playlist,bucket) 
+        s3_.save_data_s3_date_folder(playlist,bucket) 
 
 
-def save_tracks_data(tracks,playlist,aws = False,bucket = None):
+def save_tracks_data(tracks,genre,aws = False,bucket = None):
         trach_counter = 0
-        rec_dic = {
-                'Track Number':[],
-                'Track':[],
-                'Artist':[],
-                'URI':[]
-                }
+        rec_dic = {'Track Number':[],
+                   'Track':[],
+                   'Artist':[],
+                   'URI':[],
+                   'Genre':[]}
     
         if aws:
             path = '/tmp/'  
         else:
             path = 'data/'       
-        with open(f"{path}{playlist}.csv",'w') as file:
+        with open(f"{path}{genre}.csv",'w') as file:
             header = list(rec_dic.keys())
             writer = csv.DictWriter(file,fieldnames=header)
             writer.writeheader()
             for track in tracks:
                 trach_counter += 1
-                writer.writerow({
-                                'Track Number': trach_counter,
-                                'Track' : track.name,
-                                'Artist': track.artist,
-                                'URI': track.uri
-                                })
+                writer.writerow({'Track Number': trach_counter,
+                                 'Track' : track.name,
+                                 'Artist': track.artist,
+                                 'URI': track.uri,
+                                 'Genre':genre})
         if aws == True:
-            s3_.save_data_s3(playlist,bucket)     
+            s3_.save_data_s3(genre,bucket)     
 
                        
 

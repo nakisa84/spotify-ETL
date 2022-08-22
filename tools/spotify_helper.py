@@ -140,6 +140,11 @@ class SpotipyHelper(Helper):
         artists = self.client.search(q=query,type=type,limit=limit)
         return artists
 
+    def search_by_keyword(self,keyword,type,limit):
+        query = keyword 
+        artists = self.client.search(q=query,type=type,limit=limit)
+        return artists    
+
     def create_playlist_with_track(self,track_names = None,uris = None):
         playlist = self.create_playlist()
         if not uris:
@@ -163,9 +168,38 @@ class SpotipyHelper(Helper):
             tracks = self.get_top_song_by_artist(artist.id)['tracks']
             for track in tracks:
                 track = Track(track['name'],artist.name,track['id'],track['uri'])
-                print(track.__str__())
+                #track = self.add_audio_features(track)
+                #print(track.__str__())
                 atrists_track.append(track)
         return atrists_track
+
+
+
+    def get_tracks_by_keyword(self,keyword):
+        artists = self.search_by_keyword(keyword,type = 'artist',limit = 50)
+        artists = [Artist(artist['id'],artist['genres'],artist['uri'],artist['name'],artist['popularity'])  for artist in artists['artists']['items']]
+        for artist in artists:
+            print(artist.name)
+
+        atrists_track = []
+        for artist in artists:
+            tracks = self.get_top_song_by_artist(artist.id)['tracks']
+            for track in tracks: 
+                track = Track(track['name'],artist.name,track['id'],track['uri'])
+                #track = self.add_audio_features(track)
+                #print(track.__str__())
+                atrists_track.append(track)
+        return atrists_track
+
+    def add_audio_features_to_track(self,track):
+        track.features = self.client.audio_features(track.uri)
+        return track
+         
+    def get_audio_features(self,uris):
+        features = self.client.audio_features(uris)
+        filtered_list = list(filter(None, features))
+        return filtered_list       
+
        
            
 
